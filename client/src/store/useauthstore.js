@@ -2,7 +2,7 @@
 import {create} from 'zustand'
 import { axiosinsitance } from '../lib/axiosinstanse'
 import { io } from 'socket.io-client';
-const socket = io('http://localhost:1000/')
+const socket = io('https://mern-chart-server-djog6nadd-donatiens-projects-b24a54cb.vercel.app/')
 export const userauthstore = create((set,get) => ({
     authuser: sessionStorage.getItem('authuser')||null,
     isSignup: false,
