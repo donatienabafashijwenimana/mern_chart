@@ -1,7 +1,8 @@
-const express = require('express')
+import express from 'express'
 const router = express.Router()
-const {suggestFriends,sendFriendRequest,acceptFriend,rejectFriend,getFriendRequests, getofficialfriends}= require( '../controller/friendController')
-const {protectroute} = require('../middleware/authmiddleware')
+import {suggestFriends,sendFriendRequest,acceptFriend,rejectFriend,
+    getFriendRequests, getofficialfriends} from '../controller/friendController.js'
+import {protectroute} from '../middleware/authmiddleware.js'
 
 router.get('/suggest', protectroute, suggestFriends)
 router.post('/sendrequest', protectroute, sendFriendRequest)
@@ -10,4 +11,4 @@ router.get('/getofficialfriends', protectroute, getofficialfriends)
 router.post('/accept', protectroute, acceptFriend)
 router.post('/rejectrequest', protectroute, rejectFriend)
 
-module.exports = router
+export default router

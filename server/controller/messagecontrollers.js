@@ -2,13 +2,32 @@ import express from 'express'
 import users from '../model/usermodel.js'
 import cloudinary from '../LIB/cloudinary.js'
 import messagemodel from '../model/messagemodel.js'
+import Friendship from '../model/friendshipmodel.js'
 
 
 export const get_user_for_sideber= async(req,res)=>{
    try {
-    const loggedin_userid = req.user.loggedin_userid
-    const filtered_users = await users.find({_id:{$ne:loggedin_userid}}).select('-password')
-    res.status(200).json(filtered_users)   
+    
+    const loggedin_userid = req.user._id
+
+    const findmyfriendship = await Friendship.find({
+      $or:[
+        {requester: loggedin_userid},
+        {recipient: loggedin_userid}
+    ],status:'accepted'
+      })
+    const friendsid = findmyfriendship.map(f=> 
+      f.requester.toString()===loggedin_userid.toString()
+      ? f.recipient
+      :f.requester
+    )
+    
+
+    const filtered_users = await users.find({
+      _id:{$in:friendsid}
+    }).select('-password')
+
+    res.status(200).json(filtered_users)  
 } catch (error) {
     console.log(error.message)
     res.status(500).json({message:'internal server errror'})
@@ -20,7 +39,7 @@ export const getLastMessage = async (req, res) => {
   try {
       const { id: userToChat } = req.params;
       const myid = req.user._id;
-
+      
       const lastMessage = await messagemodel.findOne({
           $or: [
               { senderId: myid, receiverId: userToChat },

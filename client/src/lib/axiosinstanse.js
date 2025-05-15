@@ -2,6 +2,6 @@ import axios from 'axios'
 
 
 export const axiosinsitance = axios.create({
-    baseURL:'http://localhost:1000',
+    baseURL:'https://mern-chart-5o1y.vercel.app/',
     withCredentials:true,
 })
