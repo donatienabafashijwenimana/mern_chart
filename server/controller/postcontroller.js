@@ -39,7 +39,7 @@ export const getpost = async (req, res) => {
     try {
         const {_id:myid} = req.user
         const post = await Post.find().populate('author', 'fullname email profilepic').sort({createdAt:-1})
-        res.status(200).json(post)
+        res.status(200).json(post.filter((item) => item.author))
     } catch (error) {
         console.log(error)
         res.status(500).json({message:'internal server error'})

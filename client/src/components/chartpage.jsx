@@ -8,13 +8,12 @@ import Messagecontent from './Messagecontent'
 
 
 function Chartpage() {
-  require( '../css/chart.css')
   const {selecteduser } = userchartstore()
   const {authuser} = userauthstore()
   
   if(authuser){
     return (
-      <div className='chart-body'>
+      <div className='grid h-[calc(100vh-128px)] grid-cols-1 gap-4 p-4 lg:grid-cols-[320px_minmax(0,1fr)]'>
         <Sidebar/>
         {selecteduser ? <Messagecontent/>:<Noselecteduser/>}
       </div>

@@ -11,12 +11,11 @@ import Notificationpage from './notificationpage'
 
 
 function home() {
-  require( '../css/home.css')
   const { pages,ispagechanging,displaynotification } = switchpagestore()
   const { authuser }= userauthstore()
      if(authuser) { 
         return (
-          <div className='body'>
+          <div className='min-h-screen bg-slate-50'>
           <Header/>
           <Navbar/>
           {displaynotification && <Notificationpage/>}

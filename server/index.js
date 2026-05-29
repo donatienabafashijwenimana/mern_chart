@@ -10,13 +10,11 @@ import { io,server,app } from './LIB/socketserver.js'
 import postrouter from './routers/postrouter.js'
 import friendRoute from './routers/friendroute.js'
 
-import { Socket } from 'socket.io'
-
 dotenv.config()
 
 app.use(cors({
-    origin: process.env.frontend_url|| '*',
-    credentials:true
+    origin: process.env.frontend_url || 'http://localhost:3000',
+    credentials: true
 }))
 app.use(express.json({limit:'50mb'}))
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -51,7 +49,6 @@ io.on("connection", (socket) => {
             io.to(receiverSocketId).emit("receiveMessage", message); // Send message
         }
     });
-
     socket.on("disconnect", () => {
         // console.log("User disconnected:", socket.id);
         for (let userId in users) {
@@ -61,7 +58,8 @@ io.on("connection", (socket) => {
         }
     });
 });
+const PORT = process.env.PORT || process.env.port || 1001
 
-server.listen(process.env.port || 1001,()=>{
-    console.log('server is run')
+server.listen(PORT,()=>{
+    console.log(`server is running on port ${PORT}`)
 })

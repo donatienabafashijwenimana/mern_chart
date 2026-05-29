@@ -1,6 +1,4 @@
-import express from 'express'
-import bcrypt, { genSalt } from 'bcrypt'
-import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
 import users from '../model/usermodel.js'
 import { generatetoken } from '../LIB/utlis.js'
@@ -9,6 +7,9 @@ import cloudinary from '../LIB/cloudinary.js'
 export const register = async(req,res)=>{
     const {email,fullname,password} = req.body
     try{
+        if (!email || !fullname || !password) {
+            return res.status(400).json({message:'all fields are required'})
+        }
         const user_uname_exist =  await users.findOne({fullname})
         const user_email_exist =  await users.findOne({email})
         if (user_uname_exist) return res.status(400).json({message:'username already exist'})
@@ -24,15 +25,17 @@ export const register = async(req,res)=>{
             password:passwordhash
         })
         if (newuser){
-            generatetoken(newuser._id,res)
             await newuser.save()
+            const token = generatetoken(newuser._id,res)
             res.status(200).json({
-                _id: newuser._id,
-                fullname: newuser.username,
-                email : newuser.email,
-                profilePic: newuser.profilepic,
+                user_data: {
+                    _id: newuser._id,
+                    fullname: newuser.fullname,
+                    email : newuser.email,
+                    profilepic: newuser.profilepic,
+                },
                 message:'registartion success fully',
-                token:generatetoken(newuser._id,res)
+                token
             })
         }else{
             res.status(400).json({message:'registartion failed'})
@@ -54,13 +57,14 @@ export const login = async(req,res)=>{
         const ispassword = await bcrypt.compare(password,user.password)
         if (!ispassword) return res.status(400).json({message:"incorect password"})
         const token = generatetoken(user._id,res)
-        generatetoken(user._id,res)
         
         res.status(200).json({
-            _id:user._id,
-            user_name:user.fullname,
-            email:user.email,
-            profilePic:user.profilePic,
+            user_data:{
+                _id:user._id,
+                fullname:user.fullname,
+                email:user.email,
+                profilepic:user.profilepic,
+            },
             message:'login successfull',
             token: token
         })
@@ -80,17 +84,32 @@ export const logout = (req,res)=>{
 
 export const updateprofile = async(req,res)=>{
     try {
-        const {profilepic} = req.body
+        const {profilepic, fullname, email, password} = req.body
         const userid = req.user._id
-        if (!profilepic)return res.status(400).json({message:'profile pic is required'})
-        
-        const uploadresponse = await cloudinary.uploader.upload(profilepic)
-        const updateduser = await users.findByIdAndUpdate(userid,{profilepic:uploadresponse.secure_url},{new:true})
+        const updateData = {}
+
+        if (fullname) updateData.fullname = fullname
+        if (email) updateData.email = email
+        if (password) {
+            if (password.length < 6) return res.status(400).json({message:'password must be at least 6 characters'})
+            const salt = await bcrypt.genSalt(10)
+            updateData.password = await bcrypt.hash(password, salt)
+        }
+        if (profilepic) {
+            const uploadresponse = await cloudinary.uploader.upload(profilepic)
+            updateData.profilepic = uploadresponse.secure_url
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({message:'no profile data provided'})
+        }
+
+        const updateduser = await users.findByIdAndUpdate(userid,updateData,{new:true}).select('-password')
         res.status(200).json({user_data:updateduser,message:'data updated'})
 
     } catch (error) { 
         console.log(error)
-        res.status(500).json({message:'image not uploaded'})
+        res.status(500).json({message:'profile not updated'})
     }
 }
 

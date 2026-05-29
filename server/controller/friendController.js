@@ -7,7 +7,7 @@ export const suggestFriends = async (req, res) => {
     const currentUserId = req.user._id;
 
     // All users except current user
-    const allUsers = await User.find({ _id: { $ne: currentUserId } });
+    const allUsers = await User.find({ _id: { $ne: currentUserId } }).select('-password');
 
     // Exclude users with accepted/rejected status
     const excludedRelations = await Friendship.find({
@@ -102,7 +102,7 @@ export const suggestFriends = async (req, res) => {
 // Send friend request
 export const sendFriendRequest = async (req, res) => {
   const { recipientId } = req.body
-  const requesterId = req.user.id
+  const requesterId = req.user._id
 
   try {
     const existing = await Friendship.findOne({
@@ -181,12 +181,16 @@ export const getofficialfriends = async (req, res) => {
     // Banza ubone aba bagusabye ubucuti
     const requests = await Friendship.find({ $or :[{recipient: userId},{requester:userId}],
                                                 status: 'accepted' })
-                                                .populate('requester', 'fullname profilepic');
+                                                .populate('requester', 'fullname profilepic')
+                                                .populate('recipient', 'fullname profilepic');
 
     // Fungura buri requester urebe mutual friends
     const requestsWithMutuals = await Promise.all(
       requests.map(async (request) => {
-        const requesterId = request.requester._id;
+        const friendUser = request.requester._id.toString() === userId.toString()
+          ? request.recipient
+          : request.requester;
+        const requesterId = friendUser._id;
 
         // Inshuti z'uwakiriye (userId)
         const myFriends = await Friendship.find({
@@ -217,7 +221,7 @@ export const getofficialfriends = async (req, res) => {
 
         return {
           _id: request._id,
-          requester: request.requester,
+          requester: friendUser,
           status: request.status,
           mutualFriends: mutualFriendsCount
         };

@@ -1,7 +1,10 @@
 import { create } from "zustand";
 import { axiosinsitance } from "../lib/axiosinstanse";
 
-const token = sessionStorage.getItem('token')
+const getAuthHeader = () => ({
+    Authorization: `Bearer ${sessionStorage.getItem('token')}`
+})
+
 export const userpoststore = create((set,get)=>({
     userpost:[],
     ispostloading:false,
@@ -13,7 +16,7 @@ export const userpoststore = create((set,get)=>({
             
             const res = await axiosinsitance.post('/post/createpost', 
                 {posttext,filepost,fileposttype},{
-                headers:{Authorization:`Bearer ${token}`},
+                headers:getAuthHeader(),
             })
             alert(res.data.message)
         } catch (error) {
@@ -25,7 +28,7 @@ export const userpoststore = create((set,get)=>({
     getpost: async()=>{
         try {
             const res = await axiosinsitance.get('/post/getpost',{
-                headers:{Authorization:`Bearer ${token}`}
+                headers:getAuthHeader()
             })
             set({userpost:res.data})
         } catch (error) {
@@ -36,7 +39,7 @@ export const userpoststore = create((set,get)=>({
     likepost: async(postid)=>{
         try {
             const res = await axiosinsitance.post('/post/likepost/',{postid},{
-                headers:{Authorization:`Bearer ${token}`}
+                headers:getAuthHeader()
             })
             get().getpost()
             alert (res.data.message)
@@ -47,7 +50,7 @@ export const userpoststore = create((set,get)=>({
     dislikepost: async(postid)=>{
         try {
             const res = await axiosinsitance.post('/post/dislikepost/',{postid},{
-                headers:{Authorization:`Bearer ${token}`}
+                headers:getAuthHeader()
             })
             alert (res.data.message)
             get().getpost()
@@ -58,7 +61,7 @@ export const userpoststore = create((set,get)=>({
     getlike: async(postid)=>{
         try {
             const res = await axiosinsitance.get(`/post/getlike/${postid}`,{
-                headers:{Authorization:`Bearer ${token}`}
+                headers:getAuthHeader()
             })
             set({postlikes:res.data})
         } catch (error) {

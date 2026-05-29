@@ -2,7 +2,9 @@ import { create } from "zustand";
 import { axiosinsitance } from "../lib/axiosinstanse";
 import { io } from "socket.io-client";
 
-const socket = io('http://localhost:1000/')
+const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:1001/', {
+    autoConnect: false,
+})
 
 export const userchartstore = create((set,get)=>({
     messages:[],
@@ -103,8 +105,18 @@ export const userchartstore = create((set,get)=>({
         }
     },
     listenForMessages: () => {
-        socket.on("receiveMessage", (newMessage) => {
+        if (!socket.connected) socket.connect();
+        try {
+            const storedUser = JSON.parse(sessionStorage.getItem('authuser'));
+            if (storedUser?._id) socket.emit('joinRoom', storedUser._id);
+        } catch {
+            // Ignore invalid session data; auth flow will refresh it.
+        }
+        const handleReceiveMessage = (newMessage) => {
             set((state) => ({ messages: [...state.messages, newMessage] }));
-        });
+        };
+        socket.off("receiveMessage", handleReceiveMessage);
+        socket.on("receiveMessage", handleReceiveMessage);
+        return () => socket.off("receiveMessage", handleReceiveMessage);
     },
 }))
