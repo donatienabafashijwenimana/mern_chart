@@ -1,7 +1,7 @@
+import 'dotenv/config'
 import express from 'express'
-import mongose from 'mongoose'
+import mongoose from 'mongoose'
 import cors from "cors"
-import dotenv from 'dotenv'
 import cookieparser from 'cookie-parser'
 // const app = express()
 import authroute from './routers/authroute.js'
@@ -9,8 +9,6 @@ import messageroute from './routers/messageroute.js'
 import { io,server,app } from './LIB/socketserver.js'
 import postrouter from './routers/postrouter.js'
 import friendRoute from './routers/friendroute.js'
-
-dotenv.config()
 
 app.use(cors({
     origin: process.env.frontend_url || 'http://localhost:3000',
@@ -20,12 +18,13 @@ app.use(express.json({limit:'50mb'}))
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieparser())
 
-mongose.connect(process.env.db_url,{})
+mongoose.connect(process.env.db_url)
 .then(()=>{
-    console.log('db connected')
+    const isAtlas = process.env.db_url?.includes('mongodb+srv');
+    console.log(`DB connected successfully to: ${isAtlas ? 'MongoDB Atlas' : 'Local/Other Instance'}`);
 })
 .catch((error)=>{
-    console.log(error.message)
+    console.error('Database connection error:', error.message)
 });
 
 app.use('/auth',authroute)
