@@ -17,7 +17,7 @@ const Navbar = () => {
   if (!authuser) return null;
 
   return (
-    <nav className="sticky top-11 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 py-1.5">
+    <nav className="sticky top-16 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 py-1.5">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         {/* Main Navigation Links */}
         <div className="flex items-center gap-2 sm:gap-4">
@@ -59,13 +59,6 @@ const Navbar = () => {
               <FontAwesomeIcon icon={faTags} className={pages === 'myposts' ? "text-amber-700" : "text-amber-500"} />
             </button>
             <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Posts</span>
-          </div>
-
-          <div className="group relative">
-            <button className="flex h-10 w-10 items-center justify-center rounded-lg text-lg text-slate-600 transition-all hover:bg-slate-100">
-              <FontAwesomeIcon icon={faBell} className="text-violet-500" />
-            </button>
-            <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Notifications</span>
           </div>
         </div>
 

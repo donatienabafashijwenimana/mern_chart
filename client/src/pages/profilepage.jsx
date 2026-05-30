@@ -6,6 +6,7 @@ import { userauthstore } from "../store/useauthstore";
 import avatar from '../pic/avatar.png'
 
 import Navbar from '../components/navbar'
+import Header from '../components/header'
 
 function Profilepage() {
   const [selectedimage,setselectedimage]= useState(null)
@@ -42,6 +43,7 @@ function Profilepage() {
   
   return (
     <div className="min-h-screen px-4 py-6 text-slate-900">
+      <Header />
       <Navbar/>
       <form className="fun-card mx-auto mt-6 w-full max-w-xl p-6 sm:p-8" onSubmit={handlesubmit}>
         <div className="mb-6 text-center text-2xl font-bold tracking-tight">Your Profile</div>

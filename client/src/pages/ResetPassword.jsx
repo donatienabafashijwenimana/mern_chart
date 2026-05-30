@@ -4,6 +4,7 @@ import { userauthstore } from '../store/useauthstore';
 import { switchpagestore } from '../store/switchpagestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEyeSlash, faEye, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import Header from '../components/header';
 
 const ResetPassword = () => {
     const { token } = useParams(); // Extracts the token from the URL
@@ -18,7 +19,9 @@ const ResetPassword = () => {
     };
 
     return (
-        <div className="min-h-screen px-4 py-10 text-slate-900">
+        <div className="min-h-screen bg-slate-50 text-slate-900">
+            <Header />
+            <div className="px-4 py-10">
             <form className="fun-card mx-auto mt-8 w-full max-w-md p-6 sm:p-8" onSubmit={handleSubmit}>
                 <div className="mb-2 text-center text-4xl font-black tracking-tight">New Password</div>
                 <p className="mb-6 text-center text-sm font-semibold text-slate-500">Enter your new clubhouse password.</p>
@@ -49,6 +52,7 @@ const ResetPassword = () => {
 
                 <button type="button" className="mt-4 w-full text-center text-sm font-bold text-slate-500 hover:text-slate-800" onClick={() => window.location.href = '/'}>Back to Login</button>
             </form>
+            </div>
         </div>
     );
 };

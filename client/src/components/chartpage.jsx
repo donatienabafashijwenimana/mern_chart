@@ -132,7 +132,7 @@ const Chartpage = () => {
     if (!authuser) return null;
 
     return (
-        <div className="grid h-[calc(100vh-112px)] grid-cols-1 gap-4 p-4 lg:grid-cols-[340px_minmax(0,1fr)] overflow-hidden">
+        <div className="grid h-[calc(100vh-132px)] grid-cols-1 gap-4 pr-4 py-4 lg:grid-cols-[340px_minmax(0,1fr)] overflow-hidden">
             {/* SIDEBAR: Conversation Manager */}
             <aside className={`flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-all ${selecteduser ? 'hidden lg:flex' : 'flex'}`}>
                 <div className="border-b border-slate-100 bg-slate-50/50 p-4">
