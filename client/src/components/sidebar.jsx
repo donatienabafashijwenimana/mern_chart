@@ -46,10 +46,10 @@ function Sidebar() {
                         const lastMsgB = lastmessages[b._id]?.createdAt || 0;
                         return new Date(lastMsgB) - new Date(lastMsgA);
                     })
-                    .map((Users, index) => (
+                    .map((Users) => (
                         
                         <div
-                            key={index}
+                            key={Users._id}
                             className={selecteduser && selecteduser._id===Users._id
                                 ? "relative flex cursor-pointer items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 p-3"
                                 : "relative flex cursor-pointer items-center gap-3 rounded-lg border border-transparent p-3 transition hover:border-slate-200 hover:bg-amber-50" }
