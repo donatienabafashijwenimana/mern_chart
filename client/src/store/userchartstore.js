@@ -76,7 +76,13 @@ export const userchartstore = create((set,get)=>({
                 {Text,image},{
                 headers:{Authorization: `Bearer ${token}`}}
             )
-            set({messages :[...messages,res.data]})
+            set((state) => ({
+                messages: [...state.messages, res.data],
+                lastmessages: {
+                    ...state.lastmessages,
+                    [rec_id]: res.data,
+                }
+            }))
             socket.emit("sendMessage", { ...res.data, receiverId: rec_id });
         } catch (error) {
             alert(error.response.data)

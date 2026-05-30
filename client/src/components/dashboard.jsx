@@ -40,15 +40,6 @@ function Dashboard() {
     getSuggestions();
     getRequest();
     getofficialfriends();
-
-    const interval = setInterval(() => {
-      getpost();
-      getSuggestions();
-      getRequest();
-      getofficialfriends();
-    }, 1000);
-
-    return () => clearInterval(interval);
   }, [getSuggestions, getofficialfriends, getRequest, getpost]);
   return (
     <div className="grid min-h-[calc(100vh-108px)] grid-cols-1 gap-5 px-4 py-5 text-slate-900 lg:grid-cols-[260px_minmax(0,1fr)_300px] xl:px-6">
