@@ -14,7 +14,7 @@ const rawOrigins = [
     process.env.frontend_url,
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'http://localhost:5173',
+    'toshare.surge.sh',
 ];
 // Normalize origins by removing trailing slashes and filtering out falsy values
 const allowedOrigins = rawOrigins.filter(Boolean).map(o => o.replace(/\/$/, ''));
