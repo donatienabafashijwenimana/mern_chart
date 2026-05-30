@@ -18,7 +18,8 @@ export const userpoststore = create((set,get)=>({
                 {posttext,filepost,fileposttype},{
                 headers:getAuthHeader(),
             })
-            alert(res.data.message)
+            alert(res.data.message);
+            get().getpost();
         } catch (error) {
             alert(error.response.data.message)
         }finally{
@@ -36,26 +37,32 @@ export const userpoststore = create((set,get)=>({
 
         }
     },
-    likepost: async(postid)=>{
+    likepost: async (postid) => {
         try {
-            const res = await axiosinsitance.post('/post/likepost/',{postid},{
-                headers:getAuthHeader()
-            })
-            get().getpost()
-            alert (res.data.message)
+            const res = await axiosinsitance.post('/post/likepost', { postid }, {
+                headers: getAuthHeader()
+            });
+            set((state) => ({
+                userpost: state.userpost.map((p) => 
+                    p._id === postid ? { ...p, ...res.data } : p
+                )
+            }));
         } catch (error) {
-            console.log(error.response.data.message)    
+            console.error('Like action failed:', error.response?.data?.message);
         }
     },
-    dislikepost: async(postid)=>{
+    dislikepost: async (postid) => {
         try {
-            const res = await axiosinsitance.post('/post/dislikepost/',{postid},{
-                headers:getAuthHeader()
-            })
-            alert (res.data.message)
-            get().getpost()
+            const res = await axiosinsitance.post('/post/dislikepost', { postid }, {
+                headers: getAuthHeader()
+            });
+            set((state) => ({
+                userpost: state.userpost.map((p) => 
+                    p._id === postid ? { ...p, ...res.data } : p
+                )
+            }));
         } catch (error) {
-            console.log(error.response.data.message)    
+            console.error('Dislike action failed:', error.response?.data?.message);
         }
     },
     getlike: async(postid)=>{
@@ -67,6 +74,21 @@ export const userpoststore = create((set,get)=>({
         } catch (error) {
             console.log(error.response.data.message)
         }
-    }
+    },
+    deletepost: async (postid) => {
+        if (!window.confirm("Are you sure you want to delete this post?")) return;
+        
+        try {
+            const res = await axiosinsitance.delete(`/post/delete/${postid}`, {
+                headers: getAuthHeader()
+            });
+            set((state) => ({
+                userpost: state.userpost.filter((p) => p._id !== postid)
+            }));
+            alert(res.data.message);
+        } catch (error) {
+            console.error('Delete action failed:', error.response?.data?.message);
+        }
+    },
 
 }))

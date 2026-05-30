@@ -1,87 +1,110 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { userauthstore } from '../store/useauthstore';
-import avatar from '../pic/avatar.png';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faHome ,faBars, faEnvelope, faUserFriends, faUser} from '@fortawesome/free-solid-svg-icons';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { switchpagestore } from '../store/switchpagestore';
-import { userchartstore } from '../store/userchartstore';
-import useFriendStore from '../store/friendshipstore';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHome, faEnvelope, faUserFriends, faSignOutAlt, faTags, faBell } from '@fortawesome/free-solid-svg-icons';
+import avatar from '../pic/avatar.png';
 
-function Navbar() {
-    const {setpage,setdisplaynotification} = switchpagestore()
-    const {statusmessagenumber,fetchstatusmessage} = userchartstore()
-    const {friendsuggestionnumber}=useFriendStore()
-    const navigate = useNavigate()
-    const location = useLocation()
-    const { authuser } = userauthstore();
-    const isProfilePage = location.pathname === '/profile';
+/**
+ * Navbar component that provides navigation links and a user sub-menu.
+ */
+const Navbar = () => {
+  const { authuser, logout } = userauthstore();
+  const { setpage, pages } = switchpagestore();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // Example numbers for icons
-    const iconNumbers = {
-        home: 3,
-        message: statusmessagenumber,
-        bell: friendsuggestionnumber,
-    };
-    useEffect(()=>{
-        fetchstatusmessage();
-        const interval = setInterval(fetchstatusmessage, 1000); // refresh every 30s
-        return () => clearInterval(interval); // cleanup
-        },[fetchstatusmessage]);
+  // Only display navigation items if user is logged in
+  if (!authuser) return null;
 
-    const navButtonClass = "flex h-10 w-10 cursor-pointer items-center justify-center rounded-md transition hover:-translate-y-0.5";
-    const navIconClass = "text-[17px]";
-    const goToPage = (page) => {
-        setpage(page);
-        if (location.pathname !== '/') navigate('/');
-    };
+  return (
+    <nav className="sticky top-11 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md px-4 py-1.5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between">
+        {/* Main Navigation Links */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="group relative">
+            <button 
+              onClick={() => setpage('home')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg transition-all ${pages === 'home' ? 'bg-sky-100 text-sky-700' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <FontAwesomeIcon icon={faHome} />
+            </button>
+            <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Home</span>
+          </div>
 
-    return (
-        <div className="sticky top-0 z-30 mx-auto flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur md:px-6">
-            <div className="flex min-w-0 items-center gap-3">
-                <img className={`h-10 w-10 cursor-pointer rounded-full border object-cover shadow-sm ${isProfilePage ? 'border-sky-400 ring-4 ring-sky-100' : 'border-slate-200'}`} src={authuser?.profilepic || avatar} alt="Profile" 
-                onClick={e=>navigate('/profile')}/>
-                <div className="min-w-0">
-                    <span className="block truncate text-sm font-bold text-slate-900">{isProfilePage ? 'Profile settings' : authuser?.fullname}</span>
-                    <small className={isProfilePage ? "mt-0.5 flex items-center gap-1 text-xs font-medium text-sky-600" : "mt-0.5 flex items-center gap-1 text-xs font-medium text-emerald-600"}>
-                        {isProfilePage ? <FontAwesomeIcon icon={faUser} className="text-[10px]" /> : <small className='h-2 w-2 rounded-full bg-emerald-500'/>}
-                        {isProfilePage ? authuser?.fullname : 'online'}
-                    </small>
-                   
-                </div>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-                <div className="relative">
-                    <button type="button" className={`${navButtonClass} bg-sky-50 text-sky-700 hover:bg-sky-100`} onClick={(e)=>goToPage('home')}>
-                        <FontAwesomeIcon className={navIconClass} icon={faHome} />
-                    </button>
-                </div>
-                <div className="relative">
-                    <button type="button" className={`${navButtonClass} bg-rose-50 text-rose-700 hover:bg-rose-100`} onClick={(e)=>goToPage('chart')}>
-                        <FontAwesomeIcon className={navIconClass} icon={faEnvelope} />
-                    </button>
-                    {iconNumbers.message>0 &&<span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white">{iconNumbers.message}</span>}
-                </div>
-                <div className="relative">
-                    <button type="button" className={`${navButtonClass} bg-emerald-50 text-emerald-700 hover:bg-emerald-100`} onClick={(e)=>goToPage('friend')}>
-                        <FontAwesomeIcon className={navIconClass} icon={faUserFriends} />
-                    </button>
-                    {iconNumbers.bell > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white">{iconNumbers.bell}</span>}
-                </div>
-                <div className="relative">
-                    <button type="button" className={`${navButtonClass} bg-violet-50 text-violet-700 hover:bg-violet-100`} onClick={(e)=>setdisplaynotification(true)}>
-                        <FontAwesomeIcon className={navIconClass} icon={faBell} />
-                    </button>
-                    {iconNumbers.bell > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white">{iconNumbers.bell}</span>}
-                </div>
-                <div className="relative">
-                    <button type="button" className={`${navButtonClass} ${isProfilePage ? 'bg-sky-100 text-sky-700' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`} onClick={() => navigate('/profile')}>
-                        <FontAwesomeIcon className={navIconClass} icon={isProfilePage ? faUser : faBars} />
-                    </button>
-                </div>
-            </div>
+          <div className="group relative">
+            <button 
+              onClick={() => setpage('chart')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg transition-all ${pages === 'chart' ? 'bg-rose-100 text-rose-700' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <FontAwesomeIcon icon={faEnvelope} />
+            </button>
+            <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Messages</span>
+          </div>
+
+          <div className="group relative">
+            <button 
+              onClick={() => setpage('friend')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg transition-all ${pages === 'friend' ? 'bg-emerald-100 text-emerald-700' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <FontAwesomeIcon icon={faUserFriends} />
+            </button>
+            <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Friends</span>
+          </div>
+
+          <div className="group relative">
+            <button 
+              onClick={() => setpage('myposts')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg transition-all ${pages === 'myposts' ? 'bg-amber-100 text-amber-700' : 'text-slate-600 hover:bg-slate-100'}`}
+            >
+              <FontAwesomeIcon icon={faTags} className={pages === 'myposts' ? "text-amber-700" : "text-amber-500"} />
+            </button>
+            <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Posts</span>
+          </div>
+
+          <div className="group relative">
+            <button className="flex h-10 w-10 items-center justify-center rounded-lg text-lg text-slate-600 transition-all hover:bg-slate-100">
+              <FontAwesomeIcon icon={faBell} className="text-violet-500" />
+            </button>
+            <span className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-[10px] font-bold text-white transition-all group-hover:scale-100 z-50 shadow-lg">Notifications</span>
+          </div>
         </div>
-    );
-}
+
+        {/* User Profile Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1 pr-3 transition hover:bg-slate-100"
+          >
+            <img
+              src={authuser?.profilepic || avatar}
+              alt="profile"
+              className="h-7 w-7 rounded-full object-cover"
+            />
+            <span className="hidden text-xs font-bold text-slate-700 sm:inline capitalize" >
+              {authuser?.fullname?.split(' ')[0] || 'User'}
+            </span>
+            <span className={`text-[10px] text-slate-400 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}>▾</span>
+          </button>
+
+          {/* Sub-menu (Dropdown) */}
+          {isMenuOpen && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setIsMenuOpen(false)}></div>
+              <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl z-40">
+                <button
+                  onClick={logout}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                >
+                  <FontAwesomeIcon icon={faSignOutAlt} className="text-[10px]" />
+                  Logout
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
 
 export default Navbar;

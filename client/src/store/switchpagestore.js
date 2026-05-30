@@ -5,9 +5,9 @@ export const switchpagestore = create((set,get) =>({
     ispagechanging:false,
     displaynotification:false,
     setpage: async(page_)=>{
-       set({ispagechanging:true})
+       set({ispagechanging:true, pages: page_})
        try {
-          set({pages:page_})
+          // Logic for analytics or logging could go here
        } catch (error) {
         console.log(error)
        }finally{

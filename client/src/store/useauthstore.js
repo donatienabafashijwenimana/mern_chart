@@ -1,8 +1,8 @@
 
 import {create} from 'zustand'
-import { axiosinsitance } from '../lib/axiosinstanse'
+import { axiosinsitance, BASE_URL } from '../lib/axiosinstanse'
 import { io } from 'socket.io-client';
-const socket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:1001', {
+export const socket = io(BASE_URL, {
     autoConnect: false,
 });
 
@@ -22,6 +22,8 @@ export const userauthstore = create((set,get) => ({
     islogin: false,
     isUpdatingprofile: false,
     ischeckingAuth: true,
+    isSendingResetEmail: false,
+    isResettingPassword: false,
     socket:null,
 
     checkAuth: async () => {
@@ -80,10 +82,28 @@ export const userauthstore = create((set,get) => ({
             get().connectsocket()
             window.location.href='/'
         } catch (error) {
-            alert(error.response?.data?.message || 'Login failed')
-            console.log(error)
+            if (error.code === 'ERR_NETWORK') {
+                alert('Cannot connect to the server. Please ensure the backend is running on port 1001.');
+            } else {
+                alert(error.response?.data?.message || 'Login failed');
+            }
+            console.error('Login Error:', error);
         } finally {
             set({islogin:false})
+        }
+    },
+
+    logout: async () => {
+        try {
+            await axiosinsitance.post('auth/logout');
+            set({ authuser: null });
+            sessionStorage.removeItem('authuser');
+            sessionStorage.removeItem('token');
+            get().disconnectsocket();
+            window.location.href = '/login';
+        } catch (error) {
+            console.log('error in logout', error);
+            alert(error.response?.data?.message || 'Logout failed');
         }
     },
 
@@ -100,6 +120,35 @@ export const userauthstore = create((set,get) => ({
             console.log(error)
         }    finally{
             set({isUpdatingprofile:false})
+        }
+    },
+
+    forgotPassword: async (email) => {
+        set({ isSendingResetEmail: true });
+        try {
+            const res = await axiosinsitance.post('auth/forgot-password', { email });
+            alert(res.data.message);
+            return true;
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to send reset link');
+            return false;
+        } finally {
+            set({ isSendingResetEmail: false });
+        }
+    },
+
+    resetPassword: async (token, password) => {
+        set({ isResettingPassword: true });
+        try {
+            const res = await axiosinsitance.post(`auth/reset-password/${token}`, { password });
+            alert(res.data.message);
+            window.location.href = '/login';
+            return true;
+        } catch (error) {
+            alert(error.response?.data?.message || 'Password reset failed');
+            return false;
+        } finally {
+            set({ isResettingPassword: false });
         }
     },
 

@@ -45,14 +45,11 @@ const Messagecontent = () => {
     }, [selecteduser, fetchstatusmessage]);
 
     useEffect(() => {
-        const cleanup = listenForMessages();
-        return cleanup;
-    }, [listenForMessages]);
+        return listenForMessages();
+    }, [listenForMessages, selecteduser?._id]); // Re-subscribe if selected user changes
 
     useEffect(() => {
-        if (messageEndRef.current) {
-            messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
+        messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     const handleimagechange = async (e) => {
@@ -82,16 +79,36 @@ const Messagecontent = () => {
                 </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-sky-50 p-4" ref={messageContainerRef}>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-slate-50 p-4 sm:p-6" ref={messageContainerRef}>
                 {messages.length === 0 ? <Nomesage /> :
                     messages.map((mess, index) => {
                         const isIncoming = selecteduser._id === mess.senderId;
+                        const time = mess.createdAt ? new Date(mess.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+
                         return (
-                            <div key={index} className={isIncoming ? 'flex justify-start' : 'flex justify-end'}>
-                                <div className={isIncoming ? 'max-w-[78%] rounded-2xl rounded-tl-sm border border-slate-100 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm' : 'max-w-[78%] rounded-2xl rounded-tr-sm bg-sky-500 px-4 py-2 text-sm text-white shadow-sm'}>
-                                    {mess.images && <img className="mb-2 max-h-72 rounded-lg object-contain" src={mess.images} alt="message" />}
-                                    {mess.text && <p className="break-words">{mess.text}</p>}
-                                    <small className={isIncoming ? 'mt-1 block text-[11px] text-slate-400' : 'mt-1 block text-[11px] text-blue-100'}>10:00</small>
+                            <div key={mess._id || index} className={`flex flex-col ${isIncoming ? 'items-start' : 'items-end'}`}>
+                                <div className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 shadow-sm transition-all duration-200 ${
+                                    isIncoming 
+                                    ? 'rounded-2xl rounded-tl-none bg-white text-slate-700 border border-slate-100' 
+                                    : 'rounded-2xl rounded-tr-none bg-sky-600 text-white'
+                                }`}>
+                                    {mess.images && (
+                                        <div className="mb-2 overflow-hidden rounded-lg">
+                                            <img 
+                                                className="max-h-80 w-full object-cover transition-transform duration-300 hover:scale-[1.03]" 
+                                                src={mess.images} 
+                                                alt="attachment" 
+                                            />
+                                        </div>
+                                    )}
+                                    {mess.text && (
+                                        <p className="whitespace-pre-wrap break-words text-sm font-medium leading-relaxed">
+                                            {mess.text}
+                                        </p>
+                                    )}
+                                    <div className={`mt-1.5 flex items-center gap-1.5 ${isIncoming ? 'text-slate-400' : 'text-sky-100'}`}>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">{time}</span>
+                                    </div>
                                 </div>
                             </div>
                         );

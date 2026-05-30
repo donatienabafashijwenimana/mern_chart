@@ -5,11 +5,11 @@ const userschema = mongoose.Schema({
         type:String,
         required:true,
         unique: true
-
     },
     fullname:{
         type:String,
-        required:true
+        required:true,
+        lowercase:true
     },
     password:{
         type:String,
@@ -19,7 +19,16 @@ const userschema = mongoose.Schema({
     profilepic:{
         type:String,
         default:''
+    },
 
+    // Password reset
+    resetPasswordTokenHash:{
+        type:String,
+        default:''
+    },
+resetPasswordExpires:{
+        type:Date,
+        default:null
     }
 },
  {timestamps:true}
@@ -27,3 +36,4 @@ const userschema = mongoose.Schema({
 
 const user = mongoose.model("Users",userschema)
 export default user
+
