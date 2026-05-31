@@ -10,14 +10,6 @@ import { io,server,app } from './LIB/socketserver.js'
 import postrouter from './routers/postrouter.js'
 import friendRoute from './routers/friendroute.js'
 
-const requiredMailEnv = ['EMAIL_USER', 'EMAIL_PASS'];
-const missingMailEnv = requiredMailEnv.filter((key) => !process.env[key] || String(process.env[key]).trim() === '');
-if (missingMailEnv.length) {
-    console.warn(`Password reset emails are disabled because ${missingMailEnv.join(', ')} is not set. Use dev fallback link or provide Gmail credentials.`);
-} else {
-    console.log('Password reset email is configured.');
-}
-
 const rawOrigins = [
     process.env.frontend_url,
     'http://localhost:3000',

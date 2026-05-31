@@ -58,7 +58,6 @@ function App() {
         {/* Central AuthGate manages the view transitions for all unauthenticated paths */}
         <Route path="/reset-password/:token" element={<AuthGate />} />
         <Route path="*" element={<AuthGate />} />
-        <Route path="/login" element={<Login />} />
       </Routes>
     </BrowserRouter>
   );

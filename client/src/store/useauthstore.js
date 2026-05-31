@@ -25,6 +25,7 @@ export const userauthstore = create((set,get) => ({
     isSendingResetEmail: false,
     isResettingPassword: false,
     forgotPasswordLink: null,
+    resetPasswordUser: null,
     socket:null,
 
     checkAuth: async () => {
@@ -125,15 +126,14 @@ export const userauthstore = create((set,get) => ({
     },
 
     forgotPassword: async (email) => {
-        set({ isSendingResetEmail: true, forgotPasswordLink: null });
+        set({ isSendingResetEmail: true, forgotPasswordLink: null, resetPasswordUser: null });
         try {
             const res = await axiosinsitance.post('auth/forgot-password', { email });
             const link = res.data.resetLink || null;
-            set({ forgotPasswordLink: link });
-            alert(link ? `Reset link: ${link}` : res.data.message);
+            const name = res.data.fullname || null;
+            set({ forgotPasswordLink: link, resetPasswordUser: name });
             return true;
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to send reset link');
             return false;
         } finally {
             set({ isSendingResetEmail: false });
@@ -144,8 +144,15 @@ export const userauthstore = create((set,get) => ({
         set({ isResettingPassword: true });
         try {
             const res = await axiosinsitance.post(`auth/reset-password/${token}`, { password });
+            const { user_data, token: loginToken } = res.data;
+
+            // Automatically log the user in using the returned data and token
+            set({ authuser: user_data });
+            sessionStorage.setItem('authuser', JSON.stringify(user_data));
+            sessionStorage.setItem('token', loginToken);
+
             alert(res.data.message);
-            window.location.href = '/login';
+            window.location.href = '/'; // Redirect to home since the user is now authenticated
             return true;
         } catch (error) {
             alert(error.response?.data?.message || 'Password reset failed');

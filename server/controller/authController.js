@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt'
 import crypto from 'crypto'
-import nodemailer from 'nodemailer'
 
 import users from '../model/usermodel.js'
 import { generatetoken } from '../LIB/utlis.js'
@@ -16,7 +15,7 @@ export const register = async (req, res) => {
     const user_email_exist = await users.findOne({ email })
     if (user_uname_exist) return res.status(400).json({ message: 'username already exist' })
     if (user_email_exist) return res.status(400).json({ message: 'email already exist' })
-    if (password.length < 6) return res.status(400).json({ message: 'un match password length' })
+    if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' })
 
     const salt = await bcrypt.genSalt(10)
     const passwordhash = await bcrypt.hash(password, salt)
@@ -39,7 +38,7 @@ export const register = async (req, res) => {
         email: newuser.email,
         profilepic: newuser.profilepic,
       },
-      message: 'registartion success fully',
+      message: 'Registration successful',
       token,
     })
   } catch (error) {
@@ -49,33 +48,41 @@ export const register = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-  const { email, password} = req.body
-  // Coerce to string to prevent crashes if input is not a string
-  const identifier = String(email).toLowerCase()
-
-  if (!identifier || !password) {
-    return res.status(400).json({ message: 'Email/Username and password are required' })
-  }
-
   try {
-    const user = await users.findOne({ email: identifier })
+    const { email, password, username } = req.body || {};
+    
+    // Allow login via 'email' or 'username' field (flexible for frontend)
+    const loginInput = email || username;
 
-    if (!user) return res.status(400).json({ message: 'Incorrect email/username or password' })
+    if (!loginInput || !password) {
+      return res.status(400).json({ message: 'Email and password are required' })
+    }
 
+    const identifier = String(loginInput).trim().toLowerCase();
+
+    // Search for user by email OR fullname
+    const user = await users.findOne({
+      $or: [
+        { email: identifier },
+        { fullname: identifier }
+      ]
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Safety check for password field
     if (!user.password) {
-        console.error('Password hash missing for user:', user.email);
-        return res.status(500).json({ message: 'internal server error' });
+      console.error('Password hash missing in DB for user:', user.email);
+      return res.status(500).json({ message: 'Account configuration error. Please contact support.' });
     }
 
-    let ispassword
-    try {
-      ispassword = await bcrypt.compare(String(password), user.password)
-    } catch (bcryptErr) {
-      console.error('Bcrypt compare error (login):', bcryptErr?.stack || bcryptErr)
-      return res.status(500).json({ message: 'Internal server error (password compare)' })
-    }
+    const isPasswordCorrect = await bcrypt.compare(String(password), user.password);
 
-    if (!ispassword) return res.status(400).json({ message: 'Incorrect email/username or password' })
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     let token
     try {
@@ -92,7 +99,7 @@ export const login = async (req, res) => {
         email: user.email,
         profilepic: user.profilepic,
       },
-      message: 'login successfull',
+      message: 'Login successful',
       token,
     })
   } catch (error) {
@@ -105,7 +112,7 @@ export const login = async (req, res) => {
 export const logout = (req, res) => {
   try {
     res.cookie('token', '', { maxAge: 0 })
-    res.status(200).json({ message: 'logout successfully' })
+    res.status(200).json({ message: 'Logout successful' })
   } catch (error) {
     console.log('error in logout controller', error.message)
     res.status(500).json({ message: 'internal server error' })
@@ -156,38 +163,22 @@ export const checkauth = async (req, res) => {
   }
 }
 
-const sendResetLink = async ({ email, resetToken, res }) => {
-  const frontendBase = process.env.FRONTEND_URL || 'http://localhost:3000'
-  const link = `${frontendBase}/reset-password/${resetToken}`
+const sendResetLink = async ({ email, resetToken, res, fullname }) => {
+    const frontendBase = process.env.frontend_url || 'http://localhost:3000'
+    const link = `${frontendBase}/reset-password/${resetToken}?fullname=${encodeURIComponent(fullname || '')}`
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn("EMAIL_USER or EMAIL_PASS not set. Falling back to JSON response for reset link.");
-    return res.status(200).json({ message: 'Development mode: Link generated', resetLink: link });
-  }
-
-  // Setup Nodemailer (You would need to add these to your .env)
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  })
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'Password Reset Request',
-    text: `You requested a password reset. Click here to reset: ${link}`,
-  }
-
-  try {
-    await transporter.sendMail(mailOptions)
-    return res.status(200).json({ message: 'Reset link sent to your email' })
-  } catch (err) {
-    console.error("Nodemailer error:", err.message);
-    return res.status(500).json({ message: "Failed to send email", link: link }); // Send link in body for debugging
-  }
+    try {
+        // Directly return the link for frontend display, bypassing email providers entirely.
+        return res.status(200).json({ 
+            message: 'Reset link generated successfully.', 
+            resetLink: link, 
+            fullname, 
+            emailSent: false 
+        });
+    } catch (err) {
+        console.error("Error generating reset link:", err.message);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 }
 
 export const forgotPassword = async (req, res) => {
@@ -211,7 +202,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000 // 15 minutes
     await user.save()
 
-    return sendResetLink({ email, resetToken, res })
+    return sendResetLink({ email, resetToken, res, fullname: user.fullname })
   } catch (error) {
     console.log('error in forgotPassword', error.message)
     return res.status(500).json({ message: 'internal server error' })
@@ -251,7 +242,19 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordExpires = null
     await user.save()
 
-    return res.status(200).json({ message: 'Password reset successful' })
+    // Generate a login token so the user is logged in automatically after reset
+    const loginToken = generatetoken(user._id, res)
+
+    return res.status(200).json({ 
+      message: 'Password reset successful',
+      user_data: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        profilepic: user.profilepic,
+      },
+      token: loginToken
+    })
   } catch (error) {
     console.log('error in resetPassword', error.message)
     return res.status(500).json({ message: 'internal server error' })
