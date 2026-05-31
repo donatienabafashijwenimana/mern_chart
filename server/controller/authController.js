@@ -164,7 +164,7 @@ export const checkauth = async (req, res) => {
 }
 
 const sendResetLink = async ({ email, resetToken, res, fullname }) => {
-    const frontendBase = process.env.frontend_url || 'http://localhost:3000'
+    const frontendBase = process.env.frontend_url
     const link = `${frontendBase}/reset-password/${resetToken}?fullname=${encodeURIComponent(fullname || '')}`
 
     try {
