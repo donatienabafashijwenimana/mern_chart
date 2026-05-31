@@ -44,7 +44,7 @@ function Login() {
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-black text-slate-800">Email or Username</label>
+              <label htmlFor="email" className="mb-2 block text-sm font-black text-slate-800">Email</label>
               <input className="fun-input" type='text' id="email" value={form_data.email} autoComplete="username" onChange={e=>setFormData({...form_data,email:e.target.value.toLowerCase()})}/>
             </div>
 
