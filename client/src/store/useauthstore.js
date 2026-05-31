@@ -24,6 +24,7 @@ export const userauthstore = create((set,get) => ({
     ischeckingAuth: true,
     isSendingResetEmail: false,
     isResettingPassword: false,
+    forgotPasswordLink: null,
     socket:null,
 
     checkAuth: async () => {
@@ -124,10 +125,12 @@ export const userauthstore = create((set,get) => ({
     },
 
     forgotPassword: async (email) => {
-        set({ isSendingResetEmail: true });
+        set({ isSendingResetEmail: true, forgotPasswordLink: null });
         try {
             const res = await axiosinsitance.post('auth/forgot-password', { email });
-            alert(res.data.message);
+            const link = res.data.resetLink || null;
+            set({ forgotPasswordLink: link });
+            alert(link ? `Reset link: ${link}` : res.data.message);
             return true;
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to send reset link');

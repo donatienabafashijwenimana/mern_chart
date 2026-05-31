@@ -10,11 +10,20 @@ import { io,server,app } from './LIB/socketserver.js'
 import postrouter from './routers/postrouter.js'
 import friendRoute from './routers/friendroute.js'
 
+const requiredMailEnv = ['EMAIL_USER', 'EMAIL_PASS'];
+const missingMailEnv = requiredMailEnv.filter((key) => !process.env[key] || String(process.env[key]).trim() === '');
+if (missingMailEnv.length) {
+    console.warn(`Password reset emails are disabled because ${missingMailEnv.join(', ')} is not set. Use dev fallback link or provide Gmail credentials.`);
+} else {
+    console.log('Password reset email is configured.');
+}
+
 const rawOrigins = [
     process.env.frontend_url,
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://toshare.surge.sh',
+    'https://tosharechart.vercel.app' // Explicitly adding your vercel url
 ];
 // Normalize origins by removing trailing slashes and filtering out falsy values
 const allowedOrigins = rawOrigins.filter(Boolean).map(o => o.replace(/\/$/, ''));

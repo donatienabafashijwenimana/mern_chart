@@ -10,8 +10,8 @@ import { switchpagestore } from '../store/switchpagestore';
 function Login() {
   const [showpass,setshowpass]=useState(false)
   const [form_data, setFormData] = useState({
-    username: '',
-    password: '' 
+    email: '',
+    password: ''
   });
   const {login,islogin}=userauthstore()
   const {setpage} = switchpagestore()
@@ -44,8 +44,8 @@ function Login() {
             </div>
 
             <div>
-              <label htmlFor="username" className="mb-2 block text-sm font-black text-slate-800">Username</label>
-              <input className="fun-input" type='text' id="username" value={form_data.username} autoComplete="username" onChange={e=>setFormData({...form_data,username:e.target.value.toLowerCase()})}/>
+              <label htmlFor="email" className="mb-2 block text-sm font-black text-slate-800">Email or Username</label>
+              <input className="fun-input" type='text' id="email" value={form_data.email} autoComplete="username" onChange={e=>setFormData({...form_data,email:e.target.value.toLowerCase()})}/>
             </div>
 
             <div>

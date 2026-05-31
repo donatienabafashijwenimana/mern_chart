@@ -49,18 +49,41 @@ export const register = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-  const { username, password } = req.body
+  const { email, password} = req.body
+  // Coerce to string to prevent crashes if input is not a string
+  const identifier = String(email).toLowerCase()
+
+  if (!identifier || !password) {
+    return res.status(400).json({ message: 'Email/Username and password are required' })
+  }
 
   try {
-    const user = await users.findOne({ fullname: username.toLowerCase() })
-    console.log(username)
-    if (!user) return res.status(400).json({ message: 'incorect username' })
+    const user = await users.findOne({ email: identifier })
 
+    if (!user) return res.status(400).json({ message: 'Incorrect email/username or password' })
 
-    const ispassword = await bcrypt.compare(password, user.password)
-    if (!ispassword) return res.status(400).json({ message: 'incorect password' })
+    if (!user.password) {
+        console.error('Password hash missing for user:', user.email);
+        return res.status(500).json({ message: 'internal server error' });
+    }
 
-    const token = generatetoken(user._id, res)
+    let ispassword
+    try {
+      ispassword = await bcrypt.compare(String(password), user.password)
+    } catch (bcryptErr) {
+      console.error('Bcrypt compare error (login):', bcryptErr?.stack || bcryptErr)
+      return res.status(500).json({ message: 'Internal server error (password compare)' })
+    }
+
+    if (!ispassword) return res.status(400).json({ message: 'Incorrect email/username or password' })
+
+    let token
+    try {
+      token = generatetoken(user._id, res)
+    } catch (tokenErr) {
+      console.error('Token generation error (login):', tokenErr?.stack || tokenErr)
+      return res.status(500).json({ message: 'Internal server error (token generation)' })
+    }
 
     return res.status(200).json({
       user_data: {
@@ -73,8 +96,9 @@ export const login = async (req, res) => {
       token,
     })
   } catch (error) {
-    console.log('error in login controller', error.message)
-    return res.status(500).json({ message: 'internal server error' })
+    // This will now print the exact line causing the crash in your server terminal/logs
+    console.error('Login controller error stack:', error.stack || error)
+    return res.status(500).json({ message: 'Internal server error' })
   }
 }
 
